@@ -215,6 +215,44 @@ describe('JwksClient', () => {
         done();
       });
     });
+      
+    it('should return signing keys if use not present (mod/exp)', (done) => {
+      nock(jwksHost)
+        .get('/.well-known/jwks.json')
+        .reply(200, {
+          keys: [
+            {
+              kid: 'IdTokenSigningKeyContainer',
+              kty: 'RSA',
+              e: 'AQAB',
+              n: 'tLDZVZ2Eq_DFwNp24yeSq_Ha0MYbYOJs_WXIgVxQGabu5cZ9561OUtYWdB6xXXZLaZxFG02P5U2rC_CT1r0lPfC_KHYrviJ5Y_Ekif7iFV_1omLAiRksQziwA1i-hND32N5kxwEGNmZViVjWMBZ43wbIdWss4IMhrJy1WNQ07Fqp1Ee6o7QM1hTBve7bbkJkUAfjtC7mwIWqZdWoYIWBTZRXvhMgs_Aeb_pnDekosqDoWQ5aMklk3NvaaBBESqlRAJZUUf5WDFoJh7yRELOFF4lWJxtArTEiQPWVTX6PCs0klVPU6SRQqrtc4kKLCp1AC5EJqPYRGiEJpSz2nUhmAQ'
+            },
+            {
+              kid: 'IdTokenSigningKeyContainer.v2',
+              nbf: 1459289287,
+              kty: 'RSA',
+              e: 'AQAB',
+              n: 's4W7xjkQZP3OwG7PfRgcYKn8eRYXHiz1iK503fS-K2FZo-Ublwwa2xFZWpsUU_jtoVCwIkaqZuo6xoKtlMYXXvfVHGuKBHEBVn8b8x_57BQWz1d0KdrNXxuMvtFe6RzMqiMqzqZrzae4UqVCkYqcR9gQx66Ehq7hPmCxJCkg7ajo7fu6E7dPd34KH2HSYRsaaEA_BcKTeb9H1XE_qEKjog68wUU9Ekfl3FBIRN-1Ah_BoktGFoXyi_jt0-L0-gKcL1BLmUlGzMusvRbjI_0-qj-mc0utGdRjY-xIN2yBj8vl4DODO-wMwfp-cqZbCd9TENyHaTb8iA27s-73L3ExOQ'
+            }
+          ]
+        });
+
+      const client = new JwksClient({
+        jwksUri: `${jwksHost}/.well-known/jwks.json`
+      });
+
+      client.getSigningKeys((err, keys) => {
+        expect(err).to.be.null;
+        expect(keys).not.to.be.null;
+        expect(keys.length).to.equal(2);
+        expect(keys[0].rsaPublicKey).not.to.be.null;
+        expect(keys[0].kid).to.equal('IdTokenSigningKeyContainer');
+        expect(keys[1].kid).to.equal('IdTokenSigningKeyContainer.v2');
+        expect(keys[1].rsaPublicKey).not.to.be.null;
+        expect(keys[1].nbf).to.equal(1459289287);
+        done();
+      });
+    });
   });
 
   describe('#getSigningKey', () => {
